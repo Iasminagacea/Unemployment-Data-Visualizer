@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UnD - Modul Administrare</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        .form-group { margin-bottom: 15px; }
+        label { display: block; font-weight: bold; margin-bottom: 5px; }
+    </style>
+</head>
+<body>
+    <h2>Import Date Șomaj (ANOFM)</h2>
+    <form id="importForm" enctype="multipart/form-data">
+        <div class="form-group">
+            <label>Anul:</label>
+            <input type="number" id="an" name="an" value="2024" required>
+        </div>
+        <div class="form-group">
+            <label>Luna (1-12):</label>
+            <input type="number" id="luna" name="luna" min="1" max="12" required>
+        </div>
+        
+        <hr>
+        
+        <div class="form-group">
+            <label>1. Fișier CSV General (Total, Femei, Bărbați):</label>
+            <input type="file" id="csv_general" name="csv_general" accept=".csv" required>
+        </div>
+        <div class="form-group">
+            <label>2. Fișier CSV Mediu (Urban/Rural):</label>
+            <input type="file" id="csv_mediu" name="csv_mediu" accept=".csv" required>
+        </div>
+        <div class="form-group">
+            <label>3. Fișier CSV Vârstă (Sub 25, 25-29, etc.):</label>
+            <input type="file" id="csv_varsta" name="csv_varsta" accept=".csv" required>
+        </div>
+        <div class="form-group">
+            <label>4. Fișier CSV Educație (Fără studii, Primar, etc.):</label>
+            <input type="file" id="csv_educatie" name="csv_educatie" accept=".csv" required>
+        </div>
+
+        <button type="submit">Importă Datele</button>
+    </form>
+    
+    <div id="statusMessage"></div>
+
+   <script>
+    fetch('../backend/api/check_auth.php')
+    .then(response => response.json())
+    .then(data => {
+        if (!data.authenticated) {
+            window.location.href = 'login.html';
+        }
+    });
+</script>
+</body>
+</html>
