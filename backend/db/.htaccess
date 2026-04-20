@@ -1,0 +1,3 @@
+<Files "env.ini">
+    Require all denied
+</Files>
