@@ -55,5 +55,46 @@
         }
     });
 </script>
+
+<script>
+    fetch('../backend/api/check_auth.php')
+    .then(response => response.json())
+    .then(data => {
+        if (!data.authenticated) {
+            window.location.href = 'login.html';
+        }
+    });
+
+    document.getElementById('importForm').addEventListener('submit', function(e) {
+        e.preventDefault(); 
+
+        const formData = new FormData(this); 
+        const statusDiv = document.getElementById('statusMessage');
+        
+        statusDiv.innerHTML = "<b>Se procesează datele... Te rugăm să aștepți.</b>";
+        statusDiv.style.color = "blue";
+
+        fetch('../backend/api/import.php', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                statusDiv.innerHTML = data.message;
+                statusDiv.style.color = "green";
+                this.reset(); 
+            } else {
+                statusDiv.innerHTML = "Eroare: " + data.message;
+                statusDiv.style.color = "red";
+            }
+        })
+        .catch(error => {
+            statusDiv.innerHTML = "Eroare la comunicarea cu serverul.";
+            statusDiv.style.color = "red";
+            console.error("Fetch error:", error);
+        });
+    });
+</script>
 </body>
 </html>
