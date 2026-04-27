@@ -24,15 +24,30 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     function parse_number($str) {
+        if (!isset($str)) return 0;
         return (int) preg_replace('/[^0-9]/', '', $str);
     }
 
     function normalize_judet($judet) {
+        if (!isset($judet)) return '';
         $j = strtoupper(trim($judet));
+        $j = str_replace(['"', "'"], '', $j);
+        
         if (strpos($j, 'BUC') !== false) return 'BUCURESTI';
         if (strpos($j, 'BISTRITA') !== false) return 'BISTRITA-NASAUD';
         if (strpos($j, 'CARA') !== false) return 'CARAS-SEVERIN';
         return $j;
+    }
+
+    function detect_delimiter($file_path) {
+        $file = fopen($file_path, 'r');
+        $first_line = fgets($file);
+        fclose($file);
+        
+        $comma_count = substr_count($first_line, ',');
+        $semicolon_count = substr_count($first_line, ';');
+        
+        return ($comma_count > $semicolon_count) ? ',' : ';';
     }
 
     try {
@@ -41,14 +56,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         $date_combinate = [];
 
+        $del1 = detect_delimiter($_FILES['csv_general']['tmp_name']);
         $f1 = fopen($_FILES['csv_general']['tmp_name'], 'r');
-        fgetcsv($f1, 1000, ";"); 
-        while (($row = fgetcsv($f1, 1000, ";")) !== FALSE) {
+        fgetcsv($f1, 1000, $del1); 
+        while (($row = fgetcsv($f1, 1000, $del1)) !== FALSE) {
+            if (!isset($row[0])) continue; 
+            
             $judet = normalize_judet($row[0]);
-            if (empty($judet) || $judet === 'TOTAL' || $judet === 'TOTAL TARA') continue;
+            if (empty($judet) || $judet === 'TOTAL' || $judet === 'TOTAL TARA' || strlen($judet) > 40) continue;
 
             $date_combinate[$judet] = [
-                'total' => parse_number($row[1]), 'femei' => parse_number($row[2]), 'barbati' => parse_number($row[3]),
+                'total' => parse_number($row[1] ?? 0), 'femei' => parse_number($row[2] ?? 0), 'barbati' => parse_number($row[3] ?? 0),
                 'urban' => 0, 'rural' => 0,
                 'sub_25' => 0, 'i_25_29' => 0, 'i_30_39' => 0, 'i_40_49' => 0, 'i_50_55' => 0, 'peste_55' => 0,
                 'fara_studii' => 0, 'primar' => 0, 'gimnazial' => 0, 'liceal' => 0, 'postliceal' => 0, 'profesional' => 0, 'universitar' => 0
@@ -56,44 +74,50 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
         fclose($f1);
 
+        $del2 = detect_delimiter($_FILES['csv_mediu']['tmp_name']);
         $f2 = fopen($_FILES['csv_mediu']['tmp_name'], 'r');
-        fgetcsv($f2, 1000, ";");
-        while (($row = fgetcsv($f2, 1000, ";")) !== FALSE) {
+        fgetcsv($f2, 1000, $del2);
+        while (($row = fgetcsv($f2, 1000, $del2)) !== FALSE) {
+            if (!isset($row[0])) continue;
             $judet = normalize_judet($row[0]);
             if (isset($date_combinate[$judet])) {
-                $date_combinate[$judet]['urban'] = parse_number($row[4]);
-                $date_combinate[$judet]['rural'] = parse_number($row[7]);
+                $date_combinate[$judet]['urban'] = parse_number($row[4] ?? 0);
+                $date_combinate[$judet]['rural'] = parse_number($row[7] ?? 0);
             }
         }
         fclose($f2);
 
+        $del3 = detect_delimiter($_FILES['csv_varsta']['tmp_name']);
         $f3 = fopen($_FILES['csv_varsta']['tmp_name'], 'r');
-        fgetcsv($f3, 1000, ";");
-        while (($row = fgetcsv($f3, 1000, ";")) !== FALSE) {
+        fgetcsv($f3, 1000, $del3);
+        while (($row = fgetcsv($f3, 1000, $del3)) !== FALSE) {
+            if (!isset($row[0])) continue;
             $judet = normalize_judet($row[0]);
             if (isset($date_combinate[$judet])) {
-                $date_combinate[$judet]['sub_25'] = parse_number($row[2]);
-                $date_combinate[$judet]['i_25_29'] = parse_number($row[3]);
-                $date_combinate[$judet]['i_30_39'] = parse_number($row[4]);
-                $date_combinate[$judet]['i_40_49'] = parse_number($row[5]);
-                $date_combinate[$judet]['i_50_55'] = parse_number($row[6]);
-                $date_combinate[$judet]['peste_55'] = parse_number($row[7]);
+                $date_combinate[$judet]['sub_25'] = parse_number($row[2] ?? 0);
+                $date_combinate[$judet]['i_25_29'] = parse_number($row[3] ?? 0);
+                $date_combinate[$judet]['i_30_39'] = parse_number($row[4] ?? 0);
+                $date_combinate[$judet]['i_40_49'] = parse_number($row[5] ?? 0);
+                $date_combinate[$judet]['i_50_55'] = parse_number($row[6] ?? 0);
+                $date_combinate[$judet]['peste_55'] = parse_number($row[7] ?? 0);
             }
         }
         fclose($f3);
 
+        $del4 = detect_delimiter($_FILES['csv_educatie']['tmp_name']);
         $f4 = fopen($_FILES['csv_educatie']['tmp_name'], 'r');
-        fgetcsv($f4, 1000, ";");
-        while (($row = fgetcsv($f4, 1000, ";")) !== FALSE) {
+        fgetcsv($f4, 1000, $del4);
+        while (($row = fgetcsv($f4, 1000, $del4)) !== FALSE) {
+            if (!isset($row[0])) continue;
             $judet = normalize_judet($row[0]);
             if (isset($date_combinate[$judet])) {
-                $date_combinate[$judet]['fara_studii'] = parse_number($row[2]);
-                $date_combinate[$judet]['primar'] = parse_number($row[3]);
-                $date_combinate[$judet]['gimnazial'] = parse_number($row[4]);
-                $date_combinate[$judet]['liceal'] = parse_number($row[5]);
-                $date_combinate[$judet]['postliceal'] = parse_number($row[6]);
-                $date_combinate[$judet]['profesional'] = parse_number($row[7]);
-                $date_combinate[$judet]['universitar'] = parse_number($row[8]);
+                $date_combinate[$judet]['fara_studii'] = parse_number($row[2] ?? 0);
+                $date_combinate[$judet]['primar'] = parse_number($row[3] ?? 0);
+                $date_combinate[$judet]['gimnazial'] = parse_number($row[4] ?? 0);
+                $date_combinate[$judet]['liceal'] = parse_number($row[5] ?? 0);
+                $date_combinate[$judet]['postliceal'] = parse_number($row[6] ?? 0);
+                $date_combinate[$judet]['profesional'] = parse_number($row[7] ?? 0);
+                $date_combinate[$judet]['universitar'] = parse_number($row[8] ?? 0);
             }
         }
         fclose($f4);
@@ -121,7 +145,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $date['an'] = $an;
             $date['luna'] = $luna;
             $date['judet'] = $nume_judet;
-            
             $stmt->execute($date);
             $inserari++;
         }
