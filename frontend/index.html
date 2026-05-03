@@ -1,12 +1,14 @@
 <!DOCTYPE html>
 <html lang="ro">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>UnD - Vizualizare Date Șomaj</title>
-    
+
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    
+    <script src="charts.js?v=2"></script>
+
     <style>
         :root {
             --primary: #2563eb;
@@ -31,12 +33,15 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-            flex-wrap: wrap; 
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            flex-wrap: wrap;
             gap: 10px;
         }
-        
-        header h1 { margin: 0; font-size: 1.5rem; }
+
+        header h1 {
+            margin: 0;
+            font-size: 1.5rem;
+        }
 
         .container {
             max-width: 1200px;
@@ -48,7 +53,7 @@
             background-color: var(--card-bg);
             padding: 1.5rem;
             border-radius: 8px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
             margin-bottom: 2rem;
             display: flex;
             gap: 1rem;
@@ -60,7 +65,7 @@
             display: flex;
             flex-direction: column;
             gap: 0.5rem;
-            flex: 1; 
+            flex: 1;
             min-width: 150px;
         }
 
@@ -69,12 +74,13 @@
             font-size: 0.9rem;
         }
 
-        .filter-group select, .filter-group input {
+        .filter-group select,
+        .filter-group input {
             padding: 0.6rem;
             border: 1px solid var(--border-color);
             border-radius: 4px;
             width: 100%;
-            box-sizing: border-box; 
+            box-sizing: border-box;
         }
 
         button.btn-primary {
@@ -109,10 +115,10 @@
             background-color: var(--card-bg);
             border-radius: 8px;
             padding: 1.5rem;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
             width: 100%;
             box-sizing: border-box;
-            overflow: hidden; 
+            overflow: hidden;
             display: flex;
             flex-direction: column;
             height: 100%;
@@ -130,8 +136,8 @@
             display: flex;
             gap: 0.5rem;
             justify-content: flex-end;
-            flex-wrap: wrap; 
-            margin-top: auto; 
+            flex-wrap: wrap;
+            margin-top: auto;
             padding-top: 1rem;
         }
 
@@ -143,14 +149,14 @@
             border-radius: 4px;
             cursor: pointer;
             font-size: 0.8rem;
-            flex: 1; 
+            flex: 1;
             min-width: 70px;
         }
 
         .chart-container {
             position: relative;
             width: 100%;
-            flex-grow: 1; 
+            flex-grow: 1;
             min-height: 300px;
         }
 
@@ -159,28 +165,34 @@
                 justify-content: center;
                 text-align: center;
             }
+
             .filters-panel {
                 flex-direction: column;
-                align-items: stretch; 
+                align-items: stretch;
                 padding: 1rem;
             }
+
             .filter-group {
                 width: 100%;
             }
+
             button.btn-primary {
                 width: 100%;
                 margin-top: 10px;
-                padding: 1rem; 
+                padding: 1rem;
             }
+
             .card {
                 padding: 1rem;
             }
+
             .chart-container {
-                height: 250px; 
+                height: 250px;
             }
         }
     </style>
 </head>
+
 <body>
 
     <header>
@@ -188,7 +200,7 @@
             <img src="images/statistics.png" alt="Grafic" style="height: 1.8rem; margin-right: 10px;">
             UnD - Analiza Șomajului
         </h1>
-        
+
         <a href="login.html" style="color: white; text-decoration: none; font-weight: bold; display: flex; align-items: center;">
             <img src="images/key.png" alt="Cheie" style="height: 1.2rem; margin-right: 8px;">
             Modul Admin
@@ -205,7 +217,7 @@
                     <option value="2023">2023</option>
                 </select>
             </div>
-            
+
             <div class="filter-group">
                 <label for="filter-luna">Luna:</label>
                 <select id="filter-luna">
@@ -216,11 +228,7 @@
                 <label for="filter-judet">Județ (Opțional):</label>
                 <select id="filter-judet">
                     <option value="">Toată România (Comparare)</option>
-                    <option value="ALBA">Alba</option>
-                    <option value="BUCURESTI">București</option>
-                    <option value="IASI">Iași</option>
-                    <option value="CLUJ">Cluj</option>
-                    </select>
+                </select>
             </div>
 
             <button class="btn-primary" id="btn-aplica">Aplică Filtrele</button>
@@ -229,14 +237,28 @@
         <div id="status-message" style="margin-bottom: 1rem; color: #d97706; font-weight: bold;"></div>
 
         <div class="dashboard-grid">
-            
+
             <div class="card">
                 <h3>Comparație Județe (Total Șomeri)</h3>
-                
+
                 <div class="chart-container">
                     <canvas id="mainBarChart"></canvas>
                 </div>
-                
+
+                <div class="card">
+                    <h3>Distribuție pe Grupe de Vârstă</h3>
+                    <div class="chart-container">
+                        <canvas id="ageBarChart"></canvas>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h3>Nivel de Educație</h3>
+                    <div class="chart-container">
+                        <canvas id="eduBarChart"></canvas>
+                    </div>
+                </div>
+
                 <div class="export-tools">
                     <button>⬇️ CSV</button>
                     <button>⬇️ SVG</button>
@@ -258,6 +280,13 @@
                         <canvas id="mediuDoughnutChart"></canvas>
                     </div>
                 </div>
+
+                <div class="card" style="margin-bottom: 1.5rem;">
+                    <h3>Evoluție în Timp (Total Șomeri)</h3>
+                    <div class="chart-container" style="height: 300px;">
+                        <canvas id="evolutionLineChart"></canvas>
+                    </div>
+                </div>
             </div>
 
         </div>
@@ -269,17 +298,17 @@
         const judetSelect = document.getElementById('filter-judet');
 
         const luniValabile = {
-            "2025": [ {val: 1, text: "Ianuarie"}, {val: 2, text: "Februarie"}, {val: 3, text: "Martie"}, {val: 4, text: "Aprilie"}, {val: 5, text: "Mai"} ],
-            "2024": [ {val: 1, text: "Ianuarie"}, {val: 2, text: "Februarie"}, {val: 3, text: "Martie"}, {val: 4, text: "Aprilie"}, {val: 5, text: "Mai"}, {val: 6, text: "Iunie"}, {val: 7, text: "Iulie"}, {val: 8, text: "August"}, {val: 9, text: "Septembrie"}, {val: 10, text: "Octombrie"}, {val: 11, text: "Noiembrie"}, {val: 12, text: "Decembrie"} ],
-            "2023": [ {val: 10, text: "Octombrie"}, {val: 11, text: "Noiembrie"}, {val: 12, text: "Decembrie"} ]
+            "2025": [{ val: 1, text: "Ianuarie" }, { val: 2, text: "Februarie" }, { val: 3, text: "Martie" }, { val: 4, text: "Aprilie" }, { val: 5, text: "Mai" }],
+            "2024": [{ val: 1, text: "Ianuarie" }, { val: 2, text: "Februarie" }, { val: 3, text: "Martie" }, { val: 4, text: "Aprilie" }, { val: 5, text: "Mai" }, { val: 6, text: "Iunie" }, { val: 7, text: "Iulie" }, { val: 8, text: "August" }, { val: 9, text: "Septembrie" }, { val: 10, text: "Octombrie" }, { val: 11, text: "Noiembrie" }, { val: 12, text: "Decembrie" }],
+            "2023": [{ val: 10, text: "Octombrie" }, { val: 11, text: "Noiembrie" }, { val: 12, text: "Decembrie" }]
         };
 
         function actualizeazaLuni() {
             const anAles = anSelect.value;
             const luni = luniValabile[anAles];
-            
+
             lunaSelect.innerHTML = "";
-            
+
             luni.forEach(luna => {
                 const optiune = document.createElement("option");
                 optiune.value = luna.val;
@@ -289,10 +318,28 @@
         }
 
         anSelect.addEventListener("change", actualizeazaLuni);
-
         actualizeazaLuni();
-        
-        document.getElementById('btn-aplica').addEventListener('click', function() {
+
+        const listaJudeteRomania = [
+            "ALBA", "ARAD", "ARGES", "BACAU", "BIHOR", "BISTRITA-NASAUD", "BOTOSANI",
+            "BRAILA", "BRASOV", "BUCURESTI", "BUZAU", "CALARASI", "CARAS-SEVERIN",
+            "CLUJ", "CONSTANTA", "COVASNA", "DAMBOVITA", "DOLJ", "GALATI", "GIURGIU",
+            "GORJ", "HARGHITA", "HUNEDOARA", "IALOMITA", "IASI", "ILFOV", "MARAMURES",
+            "MEHEDINTI", "MURES", "NEAMT", "OLT", "PRAHOVA", "SALAJ", "SATU MARE",
+            "SIBIU", "SUCEAVA", "TELEORMAN", "TIMIS", "TULCEA", "VALCEA", "VASLUI", "VRANCEA"
+        ];
+
+        function populeazaJudete() {
+            listaJudeteRomania.forEach(judet => {
+                const optiune = document.createElement("option");
+                optiune.value = judet;
+                optiune.text = judet.charAt(0) + judet.slice(1).toLowerCase();
+                judetSelect.appendChild(optiune);
+            });
+        }
+        populeazaJudete();
+
+        document.getElementById('btn-aplica').addEventListener('click', function () {
             const an = anSelect.value;
             const luna = lunaSelect.value;
             const judet = judetSelect.value;
@@ -303,10 +350,15 @@
             fetch(`../backend/api/get_data.php?an=${an}&luna=${luna}&judet=${judet}`)
                 .then(response => response.json())
                 .then(data => {
-                    if(data.success && data.count > 0) {
-                        statusDiv.innerHTML = `Succes! S-au găsit ${data.count} județe. (Deschide consola F12 pentru a vedea datele)`;
-                        console.log("Datele primite de la server:", data.data);
-                        
+                    if (data.success && data.count > 0) {
+                        statusDiv.innerHTML = `Succes! S-au găsit ${data.count} rezultate.`;
+
+                        if (typeof deseneazaGrafice === "function") {
+                            deseneazaGrafice(data.data);
+                        } else {
+                            console.error("Nu ai importat fișierul charts.js sau funcția deseneazaGrafice lipsește!");
+                        }
+
                     } else {
                         statusDiv.innerHTML = "Nu s-au găsit date pentru această perioadă.";
                     }
@@ -315,7 +367,19 @@
                     statusDiv.innerHTML = "Eroare de rețea.";
                     console.error(error);
                 });
+
+                   fetch(`../backend/api/get_evolution.php?judet=${judet}`)
+            .then(response => response.json())
+            .then(data => {
+                console.log("DATE EVOLUTIE:", data);
+
+                if (data.success && typeof deseneazaEvolutie === "function") {
+                    deseneazaEvolutie(data.data);
+                }
+            })
+            .catch(err => console.error("Eroare la evoluție:", err));
         });
     </script>
 </body>
+
 </html>
