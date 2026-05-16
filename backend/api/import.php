@@ -120,23 +120,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $date_combinate[$judet]['universitar'] = parse_number($row[8] ?? 0);
             }
         }
-        fclose($f4);
-
-        $query = "INSERT INTO statistici_somaj 
-                  (an, luna, judet, total_someri, femei, barbati, urban, rural, 
-                   sub_25, intre_25_29, intre_30_39, intre_40_49, intre_50_55, peste_55,
-                   fara_studii, primar, gimnazial, liceal, postliceal, profesional, universitar) 
+        fclose($f4);        $query = "INSERT INTO statistici_somaj 
+                  (an, luna, judet, total_someri, someri_femei, someri_barbati, someri_urban, someri_rural, 
+                   varsta_sub_25, varsta_25_29, varsta_30_39, varsta_40_49, varsta_50_55, varsta_peste_55,
+                   edu_fara_studii, edu_primar, edu_gimnazial, edu_liceal, edu_postliceal, edu_profesional, edu_universitar) 
                   VALUES 
                   (:an, :luna, :judet, :total, :femei, :barbati, :urban, :rural, 
                    :sub_25, :i_25_29, :i_30_39, :i_40_49, :i_50_55, :peste_55,
                    :fara_studii, :primar, :gimnazial, :liceal, :postliceal, :profesional, :universitar)
                   ON CONFLICT (an, luna, judet) DO UPDATE SET 
-                  total_someri = EXCLUDED.total_someri, femei = EXCLUDED.femei, barbati = EXCLUDED.barbati,
-                  urban = EXCLUDED.urban, rural = EXCLUDED.rural,
-                  sub_25 = EXCLUDED.sub_25, intre_25_29 = EXCLUDED.intre_25_29, intre_30_39 = EXCLUDED.intre_30_39, 
-                  intre_40_49 = EXCLUDED.intre_40_49, intre_50_55 = EXCLUDED.intre_50_55, peste_55 = EXCLUDED.peste_55,
-                  fara_studii = EXCLUDED.fara_studii, primar = EXCLUDED.primar, gimnazial = EXCLUDED.gimnazial, 
-                  liceal = EXCLUDED.liceal, postliceal = EXCLUDED.postliceal, profesional = EXCLUDED.profesional, universitar = EXCLUDED.universitar";
+                  total_someri = EXCLUDED.total_someri, someri_femei = EXCLUDED.someri_femei, someri_barbati = EXCLUDED.someri_barbati,
+                  someri_urban = EXCLUDED.someri_urban, someri_rural = EXCLUDED.someri_rural,
+                  varsta_sub_25 = EXCLUDED.varsta_sub_25, varsta_25_29 = EXCLUDED.varsta_25_29, varsta_30_39 = EXCLUDED.varsta_30_39, 
+                  varsta_40_49 = EXCLUDED.varsta_40_49, varsta_50_55 = EXCLUDED.varsta_50_55, varsta_peste_55 = EXCLUDED.varsta_peste_55,
+                  edu_fara_studii = EXCLUDED.edu_fara_studii, edu_primar = EXCLUDED.edu_primar, edu_gimnazial = EXCLUDED.edu_gimnazial, 
+                  edu_liceal = EXCLUDED.edu_liceal, edu_postliceal = EXCLUDED.edu_postliceal, edu_profesional = EXCLUDED.edu_profesional, edu_universitar = EXCLUDED.edu_universitar";
                   
         $stmt = $db->prepare($query);
         $inserari = 0;

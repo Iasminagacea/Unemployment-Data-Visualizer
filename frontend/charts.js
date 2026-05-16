@@ -15,30 +15,29 @@ function deseneazaGrafice(dateSomeri) {
     let totalRural = 0;
 
     let varste = [0, 0, 0, 0, 0, 0]; 
-    let educatie = [0, 0, 0, 0, 0, 0, 0];
-    dateSomeri.forEach(judet => {
+    let educatie = [0, 0, 0, 0, 0, 0, 0];    dateSomeri.forEach(judet => {
         numeJudete.push(judet.judet);
         totalSomeri.push(judet.total_someri);
 
-        totalFemei += judet.femei;
-        totalBarbati += judet.barbati;
-        totalUrban += judet.urban;
-        totalRural += judet.rural;
+        totalFemei += parseInt(judet.someri_femei) || 0;
+        totalBarbati += parseInt(judet.someri_barbati) || 0;
+        totalUrban += parseInt(judet.someri_urban) || 0;
+        totalRural += parseInt(judet.someri_rural) || 0;
 
-        varste[0] += judet.sub_25;
-        varste[1] += judet.intre_25_29;
-        varste[2] += judet.intre_30_39;
-        varste[3] += judet.intre_40_49;
-        varste[4] += judet.intre_50_55;
-        varste[5] += judet.peste_55;
+        varste[0] += parseInt(judet.varsta_sub_25) || 0;
+        varste[1] += parseInt(judet.varsta_25_29) || 0;
+        varste[2] += parseInt(judet.varsta_30_39) || 0;
+        varste[3] += parseInt(judet.varsta_40_49) || 0;
+        varste[4] += parseInt(judet.varsta_50_55) || 0;
+        varste[5] += parseInt(judet.varsta_peste_55) || 0;
 
-        educatie[0] += judet.fara_studii;
-        educatie[1] += judet.primar;
-        educatie[2] += judet.gimnazial;
-        educatie[3] += judet.liceal;
-        educatie[4] += judet.postliceal;
-        educatie[5] += judet.profesional;
-        educatie[6] += judet.universitar;
+        educatie[0] += parseInt(judet.edu_fara_studii) || 0;
+        educatie[1] += parseInt(judet.edu_primar) || 0;
+        educatie[2] += parseInt(judet.edu_gimnazial) || 0;
+        educatie[3] += parseInt(judet.edu_liceal) || 0;
+        educatie[4] += parseInt(judet.edu_postliceal) || 0;
+        educatie[5] += parseInt(judet.edu_profesional) || 0;
+        educatie[6] += parseInt(judet.edu_universitar) || 0;
     });
 
     // Grafic 1: Bar Chart (Județe)
