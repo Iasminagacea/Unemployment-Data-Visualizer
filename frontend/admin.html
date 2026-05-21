@@ -5,13 +5,25 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>UnD - Modul Administrare</title>
     <style>
-        body { font-family: Arial, sans-serif; padding: 20px; }
-        .form-group { margin-bottom: 15px; }
-        label { display: block; font-weight: bold; margin-bottom: 5px; }
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
     </style>
 </head>
 <body>
     <h2>Import Date Șomaj (ANOFM)</h2>
+
     <form id="importForm" enctype="multipart/form-data">
         <div class="form-group">
             <label>Anul:</label>
@@ -21,9 +33,9 @@
             <label>Luna (1-12):</label>
             <input type="number" id="luna" name="luna" min="1" max="12" required>
         </div>
-        
+
         <hr>
-        
+
         <div class="form-group">
             <label>1. Fișier CSV General (Total, Femei, Bărbați):</label>
             <input type="file" id="csv_general" name="csv_general" accept=".csv" required>
@@ -43,58 +55,61 @@
 
         <button type="submit">Importă Datele</button>
     </form>
-    
+
+    <hr>
     <div id="statusMessage"></div>
 
-   <script>
-    fetch('../backend/api/check_auth.php')
-    .then(response => response.json())
-    .then(data => {
-        if (!data.authenticated) {
-            window.location.href = 'login.html';
-        }
-    });
-</script>
+    <script>
+        fetch('../backend/api/check_auth.php')
+            .then(response => response.json())
+            .then(data => {
+                if (!data.authenticated) {
+                    window.location.href = 'login.html';
+                }
+            });
 
-<script>
-    fetch('../backend/api/check_auth.php')
-    .then(response => response.json())
-    .then(data => {
-        if (!data.authenticated) {
-            window.location.href = 'login.html';
-        }
-    });
+        document.getElementById('importForm').addEventListener('submit', function(e) {
+            e.preventDefault();
 
-    document.getElementById('importForm').addEventListener('submit', function(e) {
-        e.preventDefault(); 
+            const formData = new FormData(this);
+            const statusDiv = document.getElementById('statusMessage');
 
-        const formData = new FormData(this); 
-        const statusDiv = document.getElementById('statusMessage');
-        
-        statusDiv.innerHTML = "<b>Se procesează datele... Te rugăm să aștepți.</b>";
-        statusDiv.style.color = "blue";
+            statusDiv.innerHTML = "<b>Se procesează datele... Te rugăm să aștepți.</b>";
+            statusDiv.style.color = "blue";
 
-        fetch('../backend/api/import.php', {
-            method: 'POST',
-            body: formData
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                statusDiv.innerHTML = data.message;
-                statusDiv.style.color = "green";
-                this.reset(); 
-            } else {
-                statusDiv.innerHTML = "Eroare: " + data.message;
+            fetch('../backend/api/import.php', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    const anImportat = document.getElementById('an').value;
+                    const lunaImportata = document.getElementById('luna').value;
+
+                    statusDiv.innerHTML = data.message;
+                    statusDiv.style.color = "green";
+
+                    for (let i = 0; i < localStorage.length; i++) {
+                        const key = localStorage.key(i);
+                        if (key && key.startsWith('somaj_' + anImportat + '_' + lunaImportata)) {
+                            localStorage.removeItem(key);
+                        }
+                    }
+                    statusDiv.innerHTML += "<br><b style='color: green;'>✓ Cache local invalidat pentru luna " + lunaImportata + "/" + anImportat + "!</b>";
+
+                    this.reset();
+                } else {
+                    statusDiv.innerHTML = "Eroare: " + data.message;
+                    statusDiv.style.color = "red";
+                }
+            })
+            .catch(error => {
+                statusDiv.innerHTML = "Eroare la comunicarea cu serverul.";
                 statusDiv.style.color = "red";
-            }
-        })
-        .catch(error => {
-            statusDiv.innerHTML = "Eroare la comunicarea cu serverul.";
-            statusDiv.style.color = "red";
-            console.error("Fetch error:", error);
+                console.error("Fetch error:", error);
+            });
         });
-    });
-</script>
+    </script>
 </body>
 </html>

@@ -1,14 +1,24 @@
 <?php
 require_once '../db/Database.php';
+require_once '../db/CacheManager.php';
 
 header('Content-Type: application/json');
 header("Access-Control-Allow-Origin: *"); 
 
 try {
+    $judet = isset($_GET['judet']) ? $_GET['judet'] : null;
+
+    $cache = new CacheManager(3600); 
+    $cacheKey = $cache->getCacheKey('evolution_', ['judet' => $judet]);
+    
+    $rezultate = $cache->get($cacheKey);
+    if ($rezultate !== null) {
+        echo json_encode(["success" => true, "data" => $rezultate, "cached" => true]);
+        exit;
+    }
+
     $database = new Database();
     $db = $database->getConnection();
-
-    $judet = isset($_GET['judet']) ? $_GET['judet'] : null;
 
     if ($judet) {
         $query = "SELECT an, luna, total_someri as total 
@@ -28,7 +38,9 @@ try {
 
     $rezultate = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-    echo json_encode(["success" => true, "data" => $rezultate]);
+    $cache->set($cacheKey, $rezultate);
+
+    echo json_encode(["success" => true, "data" => $rezultate, "cached" => false]);
 
 } catch (Exception $e) {
     echo json_encode(["success" => false, "message" => "Eroare DB: " . $e->getMessage()]);

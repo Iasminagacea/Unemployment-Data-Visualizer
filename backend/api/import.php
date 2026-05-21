@@ -19,7 +19,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     if (!isset($_FILES['csv_general'], $_FILES['csv_mediu'], $_FILES['csv_varsta'], $_FILES['csv_educatie'])) {
-        echo json_encode(["success" => false, "message" => "Te rugăm să încarci TOATE cele 4 fișiere!"]);
+        echo json_encode(["success" => false, "message" => "Te rugăm să încarci toate cele 4 fișiere!"]);
         exit;
     }
 
@@ -120,7 +120,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $date_combinate[$judet]['universitar'] = parse_number($row[8] ?? 0);
             }
         }
-        fclose($f4);        $query = "INSERT INTO statistici_somaj 
+        fclose($f4);
+
+        $query = "INSERT INTO statistici_somaj 
                   (an, luna, judet, total_someri, someri_femei, someri_barbati, someri_urban, someri_rural, 
                    varsta_sub_25, varsta_25_29, varsta_30_39, varsta_40_49, varsta_50_55, varsta_peste_55,
                    edu_fara_studii, edu_primar, edu_gimnazial, edu_liceal, edu_postliceal, edu_profesional, edu_universitar) 
@@ -147,7 +149,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $inserari++;
         }
 
-        echo json_encode(["success" => true, "message" => "Import complet! S-au procesat și combinat $inserari județe pentru luna $luna/$an."]);
+        require_once '../db/CacheManager.php';
+        $cache = new CacheManager();
+        
+        $cacheDir = __DIR__ . '/../cache/';
+        if (is_dir($cacheDir)) {
+            $files = glob($cacheDir . '*.cache');
+            foreach ($files as $file) {
+                if (is_file($file)) {
+                    unlink($file);
+                }
+            }
+        }
+        
+        error_log("Import complete: $inserari items for $luna/$an. Cache invalidated.");
+        
+        echo json_encode(["success" => true, "message" => "Import complet! S-au procesat și combinat $inserari județe pentru luna $luna/$an. Cache invalidat pentru reîncărcare datelor noi."]);
 
     } catch (Exception $e) {
         echo json_encode(["success" => false, "message" => "Eroare baza de date: " . $e->getMessage()]);

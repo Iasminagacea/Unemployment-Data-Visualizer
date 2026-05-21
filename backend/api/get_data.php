@@ -5,40 +5,52 @@ header('Content-Type: application/json');
 header("Access-Control-Allow-Origin: *"); 
 
 try {
+    $an = isset($_GET['an']) ? (int)$_GET['an'] : null;
+    $luna = isset($_GET['luna']) ? (int)$_GET['luna'] : null;
+    $judet = isset($_GET['judet']) ? trim($_GET['judet']) : '';
+
+    if (!$an || !$luna) {
+        echo json_encode([
+            "success" => false,
+            "message" => "Anul și luna sunt parametri obligatorii!",
+            "debug" => ["an" => $an, "luna" => $luna]
+        ]);
+        exit;
+    }
+
+    error_log("get_data.php called: an=$an, luna=$luna, judet='$judet'");
+
     $database = new Database();
     $db = $database->getConnection();
 
-    $an = isset($_GET['an']) ? (int)$_GET['an'] : null;
-    $luna = isset($_GET['luna']) ? (int)$_GET['luna'] : null;
-    $judet = isset($_GET['judet']) ? $_GET['judet'] : null;
+    $query = "SELECT * FROM statistici_somaj WHERE an = :an AND luna = :luna";
+    $params = [':an' => $an, ':luna' => $luna];
 
-    $query = "SELECT * FROM statistici_somaj WHERE 1=1";
-    $params = [];
-
-    if ($an) {
-        $query .= " AND an = :an";
-        $params[':an'] = $an;
-    }
-    if ($luna) {
-        $query .= " AND luna = :luna";
-        $params[':luna'] = $luna;
-    }
-    if ($judet) {
+    if ($judet && $judet !== "") {
         $query .= " AND judet = :judet";
         $params[':judet'] = strtoupper($judet);
     }
 
-    $query .= " ORDER BY an DESC, luna DESC, judet ASC";
+    $query .= " ORDER BY judet ASC";
+
+    error_log("Executing query: $query with params: " . json_encode($params));
 
     $stmt = $db->prepare($query);
     $stmt->execute($params);
-
     $rezultate = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+    error_log("Query result count: " . count($rezultate));
+    
+    if (count($rezultate) === 0) {
+        error_log("WARNING: Query returned 0 results for an=$an, luna=$luna, judet='$judet'");
+        error_log("Query was: $query");
+    }
 
     echo json_encode([
         "success" => true,
         "count" => count($rezultate),
-        "data" => $rezultate
+        "data" => $rezultate,
+        "cached" => false
     ]);
 
 } catch (Exception $e) {

@@ -1,4 +1,4 @@
-# UnD (Unemployment Data Visualizer)
+﻿# UnD (Unemployment Data Visualizer)
 
 Acesta este un instrument Web dezvoltat pentru prelucrarea și gestionarea datelor publice referitoare la șomajul din România, pe baza seturilor de date furnizate de ANOFM. 
 
@@ -16,39 +16,62 @@ Proiect realizat pentru disciplina Tehnologii Web.
 * **Design Responsiv:** Interfață construită folosind CSS Grid și Flexbox pentru adaptarea perfectă pe desktop și mobil.
 * **Filtrare Dinamică:** Filtre interactive interdependente. Meniul drop-down pentru luni se actualizează dinamic prin JavaScript în funcție de anul selectat, iar utilizatorul poate filtra datele la nivel național sau pentru un județ specific.
 
-### 3. Vizualizare și Comparare Multi-Criterială (Chart.js)
-Aplicația permite analiza șomajului prin multiple maniere de vizualizare:
-* **Comparație Județe:** Bar Chart ce afișează numărul total de șomeri pentru fiecare județ.
-* **Distribuție Gen:** Pie Chart ce prezintă proporția șomerilor (Femei vs. Bărbați).
-* **Mediu (Urban / Rural):** Doughnut Chart pentru analiza distribuției pe medii de rezidență.
-* **Nivel de Educație:** Bar Chart detaliat (Fără studii, Primar, Gimnazial, Liceal, Postliceal, Profesional, Universitar).
-* **Grupe de Vârstă:** Bar Chart pentru segmentele de vârstă (< 25, 25-29, 30-39, 40-49, 50-55, > 55 ani).
-* **Evoluție în Timp:** Line Chart integrat printr-un endpoint separat (`get_evolution.php`), care randează automat istoricul șomajului pe luni/ani (pentru județul selectat sau la nivel național).
+### 3. Vizualizare și Comparare Multi-Criterială
+Aplicația permite analiza șomajului prin 7 maniere de vizualizare:
+* **Comparație Județe:** Bar Chart cu totalul șomerilor pe județ.
+* **Distribuție Gen:** Pie Chart (Femei vs. Bărbați).
+* **Mediu (Urban / Rural):** Doughnut Chart.
+* **Nivel de Educație:** Bar Chart (7 categorii).
+* **Grupe de Vârstă:** Bar Chart (6 grupe: <25, 25-29, 30-39, 40-49, 50-55, >55).
+* **Evoluție în Timp:** Line Chart cu date istorice (luni/ani) via `get_evolution.php`.
+
+### 4. Hartă Interactivă (Leaflet.js + OpenStreetMap)
+* **42 Județe:** Cercuri color-coded cu gradient (verde → roșu) după densitatea șomajului.
+* **Dimensiune Dinamică:** Raza cercului proporțională cu numărul de șomeri.
+* **Pop-up-uri:** Click pe județ pentru a vedea statistici detaliate.
+* **Integrare:** Actualizare automată pe schimbarea filtrelor (an/lună).
+
+### 5. Export de Date (3 Formate)
+* **CSV:** UTF-8 cu BOM pentru caractere românești, toate datele tabelului.
+* **SVG:** Grafic vectorial scalabil (PNG embedded).
+* **PDF:** A4 landscape cu tabele și paginare automată (jsPDF).
+* **UI:** Buton "Export" în panelul de filtre cu selecție date și format.
+
+### 6. Caching Stratificat
+* **Backend:** File-based cache cu TTL 1 oră (CacheManager.php) pentru API responses.
+* **Frontend:** localStorage pentru persistență date între sesiuni.
+* **Performance:** Reducere semnificativă a query-urilor la bază.
 
 ## Tehnologii Utilizate
-* **Frontend:** HTML5, CSS3 (variabile native, Grid, Flexbox), Vanilla JavaScript (Fetch API), Chart.js (prin CDN).
+* **Frontend:** HTML5, CSS3 (Grid, Flexbox), Vanilla JavaScript, Chart.js (CDN), Leaflet.js (CDN).
 * **Backend:** PHP pur (Sesiuni, PDO).
 * **Bază de date:** PostgreSQL.
-* **Arhitectură:** Client-Server, fără utilizarea vreunui framework, conform specificațiilor proiectului.
+* **Caching:** File-based backend (1 oră TTL) + localStorage frontend.
+* **Arhitectură:** Client-Server, fără framework, 100% API-based.
 
 ## Structura Proiectului
-```text
+``````text
 Unemployment-Data-Visualizer/
 ├── frontend/
-│   ├── login.html       # Interfața de autentificare pentru administrator
-│   ├── admin.html       # Modulul de import pentru datele CSV (protejat)
-│   ├── index.html       # Interfața publică cu filtre dinamice și grafice
-│   ├── charts.js        # Logica JavaScript pentru instanțierea și distrugerea graficelor (Chart.js)
-│   └── images/          # Resurse statice (iconițe)
+│   ├── login.html          # Interfață login administrator
+│   ├── admin.html          # Import CSV (protejat cu sesiune)
+│   ├── index.html          # Interfață publică cu filtre și grafice
+│   ├── charts.js           # Logică Chart.js (5 grafice)
+│   ├── export.js           # Export CSV/SVG/PDF
+│   ├── map.js              # Hartă Leaflet cu 42 județe
+│   └── images/             # Resurse statice
 ├── backend/
 │   ├── db/
-│   │   ├── Database.php # Clasa de conexiune securizată (PDO) la PostgreSQL
-│   │   ├── env.ini      # Fișier cu credențialele de DB și Admin
-│   │   └── .htaccess    # Protecție Apache pentru blocarea accesului la env.ini
-│   └── api/
-│       ├── login.php          # Verificarea credențialelor și inițializarea sesiunii
-│       ├── check_auth.php     # Validarea sesiunii active (protecție rută admin)
-│       ├── import.php         # Procesarea și combinarea celor 4 CSV-uri
-│       ├── get_data.php       # Endpoint API pentru statistici specifice unei luni
-│       └── get_evolution.php  # Endpoint API pentru extragerea datelor istorice în format Time-Series
+│   │   ├── Database.php    # PDO connection class
+│   │   ├── CacheManager.php# File-based caching (1h TTL)
+│   │   ├── env.ini         # Credențiale DB și admin
+│   │   └── .htaccess       # Protecție env.ini
+│   ├── api/
+│   │   ├── login.php       # Autentificare sesiune
+│   │   ├── check_auth.php  # Validare sesiune
+│   │   ├── import.php      # Procesare 4 CSV-uri
+│   │   ├── get_data.php    # API date lună (cache)
+│   │   └── get_evolution.php# API time-series (cache)
+│   └── cache/              # Cache storage
 └── README.md
+``````

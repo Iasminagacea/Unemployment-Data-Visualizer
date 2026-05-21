@@ -1,12 +1,11 @@
 let barChartInstance = null;
 let pieChartInstance = null;
 let doughnutChartInstance = null;
-let ageChartInstance = null;  
-let eduChartInstance = null;  
-let evolutionChartInstance = null; 
+let ageChartInstance = null;
+let eduChartInstance = null;
+let evolutionChartInstance = null;
 
 function deseneazaGrafice(dateSomeri) {
-
     const numeJudete = [];
     const totalSomeri = [];
     let totalFemei = 0;
@@ -14,8 +13,10 @@ function deseneazaGrafice(dateSomeri) {
     let totalUrban = 0;
     let totalRural = 0;
 
-    let varste = [0, 0, 0, 0, 0, 0]; 
-    let educatie = [0, 0, 0, 0, 0, 0, 0];    dateSomeri.forEach(judet => {
+    let varste = [0, 0, 0, 0, 0, 0];
+    let educatie = [0, 0, 0, 0, 0, 0, 0];
+
+    dateSomeri.forEach(judet => {
         numeJudete.push(judet.judet);
         totalSomeri.push(judet.total_someri);
 
@@ -46,15 +47,21 @@ function deseneazaGrafice(dateSomeri) {
     barChartInstance = new Chart(ctxBar, {
         type: 'bar',
         data: {
-            labels: numeJudete, 
+            labels: numeJudete,
             datasets: [{
                 label: 'Total Șomeri',
-                data: totalSomeri, 
-                backgroundColor: 'rgba(37, 99, 235, 0.7)', 
+                data: totalSomeri,
+                backgroundColor: 'rgba(37, 99, 235, 0.7)',
                 borderWidth: 1
             }]
         },
-        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { display: false }
+            }
+        }
     });
 
     // Grafic 2: Pie (Gen)
@@ -64,9 +71,16 @@ function deseneazaGrafice(dateSomeri) {
         type: 'pie',
         data: {
             labels: ['Femei', 'Bărbați'],
-            datasets: [{ data: [totalFemei, totalBarbati], backgroundColor: ['#ec4899', '#3b82f6'], borderWidth: 1 }]
+            datasets: [{
+                data: [totalFemei, totalBarbati],
+                backgroundColor: ['#ec4899', '#3b82f6'],
+                borderWidth: 1
+            }]
         },
-        options: { responsive: true, maintainAspectRatio: false }
+        options: {
+            responsive: true,
+            maintainAspectRatio: false
+        }
     });
 
     // Grafic 3: Doughnut (Mediu)
@@ -76,9 +90,16 @@ function deseneazaGrafice(dateSomeri) {
         type: 'doughnut',
         data: {
             labels: ['Urban', 'Rural'],
-            datasets: [{ data: [totalUrban, totalRural], backgroundColor: ['#f59e0b', '#10b981'], borderWidth: 1 }]
+            datasets: [{
+                data: [totalUrban, totalRural],
+                backgroundColor: ['#f59e0b', '#10b981'],
+                borderWidth: 1
+            }]
         },
-        options: { responsive: true, maintainAspectRatio: false }
+        options: {
+            responsive: true,
+            maintainAspectRatio: false
+        }
     });
 
     // Grafic 4: Vârstă (Bar Chart)
@@ -91,35 +112,47 @@ function deseneazaGrafice(dateSomeri) {
             datasets: [{
                 label: 'Număr Șomeri',
                 data: varste,
-                backgroundColor: 'rgba(139, 92, 246, 0.7)', 
+                backgroundColor: 'rgba(139, 92, 246, 0.7)',
                 borderWidth: 1
             }]
         },
-        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { display: false }
+            }
+        }
     });
 
     // Grafic 5: Educație (Bar Chart)
     const ctxEdu = document.getElementById('eduBarChart').getContext('2d');
     if (eduChartInstance) eduChartInstance.destroy();
     eduChartInstance = new Chart(ctxEdu, {
-        type: 'bar', 
+        type: 'bar',
         data: {
             labels: ['Fără studii', 'Primar', 'Gimnazial', 'Liceal', 'Postliceal', 'Profesional', 'Universitar'],
             datasets: [{
                 label: 'Număr Șomeri',
                 data: educatie,
-                backgroundColor: 'rgba(16, 185, 129, 0.7)', 
+                backgroundColor: 'rgba(16, 185, 129, 0.7)',
                 borderWidth: 1
             }]
         },
-        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { display: false }
+            }
+        }
     });
 }
 
 // Grafic 6: Evoluție în Timp (Line Chart)
 function deseneazaEvolutie(dateEvolutie) {
     const eticheteTimp = [];
-    const valoriSomeri = []; 
+    const valoriSomeri = [];
 
     if (!dateEvolutie || dateEvolutie.length === 0) return;
 
@@ -134,9 +167,9 @@ function deseneazaEvolutie(dateEvolutie) {
         console.error("Nu găsesc canvas-ul evolutionLineChart în HTML!");
         return;
     }
-    
+
     const ctxEvolutie = panza.getContext('2d');
-    
+
     if (evolutionChartInstance !== null) {
         evolutionChartInstance.destroy();
     }
@@ -148,23 +181,23 @@ function deseneazaEvolutie(dateEvolutie) {
             datasets: [{
                 label: 'Total Șomeri',
                 data: valoriSomeri,
-                borderColor: '#ef4444', 
-                backgroundColor: 'rgba(239, 68, 68, 0.1)', 
+                borderColor: '#ef4444',
+                backgroundColor: 'rgba(239, 68, 68, 0.1)',
                 borderWidth: 3,
                 pointBackgroundColor: '#ef4444',
                 pointRadius: 5,
                 fill: true,
-                tension: 0.4 
+                tension: 0.4
             }]
         },
-        options: { 
-            responsive: true, 
+        options: {
+            responsive: true,
             maintainAspectRatio: false,
             plugins: {
                 legend: { display: false }
             },
             scales: {
-                y: { beginAtZero: false } 
+                y: { beginAtZero: false }
             }
         }
     });

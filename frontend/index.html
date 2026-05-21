@@ -1,13 +1,17 @@
 <!DOCTYPE html>
 <html lang="ro">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>UnD - Vizualizare Date Șomaj</title>
-
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="charts.js?v=2"></script>
+    <script src="export.js"></script>
+
+    <!-- Leaflet pentru hartă -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+    <script src="map.js"></script>
 
     <style>
         :root {
@@ -59,6 +63,24 @@
             gap: 1rem;
             flex-wrap: wrap;
             align-items: flex-end;
+            justify-content: space-between;
+            overflow: visible;
+        }
+
+        .filters-left {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+            align-items: flex-end;
+            flex: 1;
+            z-index: 50;
+        }
+
+        .filters-right {
+            display: flex;
+            gap: 0.5rem;
+            align-items: flex-end;
+            z-index: 40;
         }
 
         .filter-group {
@@ -81,6 +103,30 @@
             border-radius: 4px;
             width: 100%;
             box-sizing: border-box;
+            position: relative;
+            z-index: 100;
+        }
+
+        .filter-group select {
+            appearance: none;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+            background-repeat: no-repeat;
+            background-position: right 0.5rem center;
+            background-size: 1.5em 1.5em;
+            padding-right: 2.5rem;
+            cursor: pointer;
+        }
+
+        .filter-group select:hover {
+            border-color: var(--primary);
+        }
+
+        .filter-group select:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
         }
 
         button.btn-primary {
@@ -97,6 +143,27 @@
 
         button.btn-primary:hover {
             background-color: #1d4ed8;
+        }
+
+        button.btn-export {
+            background-color: #10b981;
+            color: white;
+            border: none;
+            padding: 0.7rem 1.5rem;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: background 0.3s;
+            height: fit-content;
+        }
+
+        button.btn-export:hover {
+            background-color: #059669;
+        }
+
+        button.btn-export:disabled {
+            background-color: #9ca3af;
+            cursor: not-allowed;
         }
 
         .dashboard-grid {
@@ -153,6 +220,169 @@
             min-width: 70px;
         }
 
+        .export-tools button:hover {
+            background-color: #334155;
+        }
+
+        #harta-somaj {
+            width: 100%;
+            height: 500px;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+        }
+
+        .info.legend {
+            background: white;
+            padding: 10px;
+            border-radius: 5px;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .info.legend p {
+            margin: 5px 0;
+            font-size: 12px;
+        }
+
+        /* Modal Export */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.4);
+        }
+
+        .modal.show {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            background-color: var(--card-bg);
+            padding: 2rem;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+            max-width: 500px;
+            width: 90%;
+            animation: slideIn 0.3s ease-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .modal-header {
+            font-size: 1.5rem;
+            font-weight: bold;
+            margin-bottom: 1.5rem;
+            border-bottom: 2px solid var(--border-color);
+            padding-bottom: 0.5rem;
+        }
+
+        .modal-body {
+            margin-bottom: 1.5rem;
+        }
+
+        .export-option {
+            margin-bottom: 1rem;
+        }
+
+        .export-option label {
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+            padding: 0.5rem;
+            border-radius: 4px;
+            transition: background 0.2s;
+        }
+
+        .export-option label:hover {
+            background-color: var(--bg-color);
+        }
+
+        .export-option input[type="radio"] {
+            margin-right: 0.8rem;
+            cursor: pointer;
+            width: 18px;
+            height: 18px;
+        }
+
+        .export-format {
+            margin-top: 1.5rem;
+            padding-top: 1rem;
+            border-top: 1px solid var(--border-color);
+        }
+
+        .export-format label {
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+            padding: 0.5rem;
+            margin-bottom: 0.5rem;
+            border-radius: 4px;
+            transition: background 0.2s;
+        }
+
+        .export-format label:hover {
+            background-color: var(--bg-color);
+        }
+
+        .export-format input[type="radio"] {
+            margin-right: 0.8rem;
+            cursor: pointer;
+            width: 18px;
+            height: 18px;
+        }
+
+        .modal-footer {
+            display: flex;
+            gap: 1rem;
+            justify-content: flex-end;
+        }
+
+        .modal-footer button {
+            padding: 0.7rem 1.5rem;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: background 0.3s;
+        }
+
+        .btn-export {
+            background-color: var(--primary);
+            color: white;
+        }
+
+        .btn-export:hover {
+            background-color: #1d4ed8;
+        }
+
+        .btn-export:disabled {
+            background-color: #cbd5e1;
+            cursor: not-allowed;
+        }
+
+        .btn-cancel {
+            background-color: #e2e8f0;
+            color: var(--text-main);
+        }
+
+        .btn-cancel:hover {
+            background-color: #cbd5e1;
+        }
+
         .chart-container {
             position: relative;
             width: 100%;
@@ -192,7 +422,6 @@
         }
     </style>
 </head>
-
 <body>
 
     <header>
@@ -209,38 +438,41 @@
 
     <div class="container">
         <div class="filters-panel">
-            <div class="filter-group">
-                <label for="filter-an">Anul:</label>
-                <select id="filter-an">
-                    <option value="2025">2025</option>
-                    <option value="2024">2024</option>
-                    <option value="2023">2023</option>
-                </select>
+            <div class="filters-left">
+                <div class="filter-group">
+                    <label for="filter-an">Anul:</label>
+                    <select id="filter-an">
+                        <option value="2025">2025</option>
+                        <option value="2024">2024</option>
+                        <option value="2023">2023</option>
+                    </select>
+                </div>
+
+                <div class="filter-group">
+                    <label for="filter-luna">Luna:</label>
+                    <select id="filter-luna"></select>
+                </div>
+
+                <div class="filter-group">
+                    <label for="filter-judet">Județ (Opțional):</label>
+                    <select id="filter-judet">
+                        <option value="">Toată România (Comparare)</option>
+                    </select>
+                </div>
+
+                <button class="btn-primary" id="btn-aplica">Aplică Filtrele</button>
             </div>
 
-            <div class="filter-group">
-                <label for="filter-luna">Luna:</label>
-                <select id="filter-luna">
-                </select>
+            <div class="filters-right">
+                <button class="btn-export" id="btn-export-data">Export</button>
             </div>
-
-            <div class="filter-group">
-                <label for="filter-judet">Județ (Opțional):</label>
-                <select id="filter-judet">
-                    <option value="">Toată România (Comparare)</option>
-                </select>
-            </div>
-
-            <button class="btn-primary" id="btn-aplica">Aplică Filtrele</button>
         </div>
 
         <div id="status-message" style="margin-bottom: 1rem; color: #d97706; font-weight: bold;"></div>
 
         <div class="dashboard-grid">
-
             <div class="card">
                 <h3>Comparație Județe (Total Șomeri)</h3>
-
                 <div class="chart-container">
                     <canvas id="mainBarChart"></canvas>
                 </div>
@@ -258,12 +490,15 @@
                         <canvas id="eduBarChart"></canvas>
                     </div>
                 </div>
+            </div>
 
-                <div class="export-tools">
-                    <button>⬇️ CSV</button>
-                    <button>⬇️ SVG</button>
-                    <button>⬇️ PDF</button>
-                </div>
+            <div class="card">
+                <h3>Hartă de Distribuție (Densitate)</h3>
+                <div id="harta-somaj"></div>
+                <p style="font-size: 0.85rem; color: #666; margin-top: 10px;">
+                    <strong>Dimensiunea cercului:</strong> Proporțională cu numărul de șomeri<br>
+                    <strong>Culoarea:</strong> Verde (puțini) → Roșu (mulți)
+                </p>
             </div>
 
             <div class="dashboard-grid" style="grid-template-columns: 1fr; gap: 2rem;">
@@ -288,7 +523,6 @@
                     </div>
                 </div>
             </div>
-
         </div>
     </div>
 
@@ -296,6 +530,10 @@
         const anSelect = document.getElementById('filter-an');
         const lunaSelect = document.getElementById('filter-luna');
         const judetSelect = document.getElementById('filter-judet');
+
+        let dateCurrente = null;
+        let anCurent = 2025;
+        let lunaCurenta = 5;
 
         const luniValabile = {
             "2025": [{ val: 1, text: "Ianuarie" }, { val: 2, text: "Februarie" }, { val: 3, text: "Martie" }, { val: 4, text: "Aprilie" }, { val: 5, text: "Mai" }],
@@ -320,6 +558,27 @@
         anSelect.addEventListener("change", actualizeazaLuni);
         actualizeazaLuni();
 
+        document.addEventListener('mousedown', function(e) {
+            if (e.target.tagName === 'SELECT' || e.target.tagName === 'OPTION') {
+                e.stopPropagation();
+            }
+        }, true);
+
+        // Apelează graficul de evoluție la inițializare (pentru România întreagă)
+        window.addEventListener('load', function() {
+            setTimeout(function() {
+                fetch(`../backend/api/get_evolution.php?judet=`)
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success && typeof deseneazaEvolutie === "function") {
+                            deseneazaEvolutie(data.data);
+                            console.log("Graficul de evoluție s-a inițializat cu succes");
+                        }
+                    })
+                    .catch(err => console.error("Eroare inițializare evoluție:", err));
+            }, 500);
+        });
+
         const listaJudeteRomania = [
             "ALBA", "ARAD", "ARGES", "BACAU", "BIHOR", "BISTRITA-NASAUD", "BOTOSANI",
             "BRAILA", "BRASOV", "BUCURESTI", "BUZAU", "CALARASI", "CARAS-SEVERIN",
@@ -337,6 +596,7 @@
                 judetSelect.appendChild(optiune);
             });
         }
+
         populeazaJudete();
 
         document.getElementById('btn-aplica').addEventListener('click', function () {
@@ -344,8 +604,27 @@
             const luna = lunaSelect.value;
             const judet = judetSelect.value;
 
+            anCurent = an;
+            lunaCurenta = luna;
+
             const statusDiv = document.getElementById('status-message');
             statusDiv.innerHTML = "Se încarcă datele de la server...";
+
+            const cacheKey = `somaj_${an}_${luna}_${judet}`;
+            let cachedData = getCachedData(cacheKey);
+
+            if (cachedData && cachedData.length > 0) {
+                statusDiv.innerHTML = `Succes! S-au găsit ${cachedData.length} rezultate.`;
+                dateCurrente = cachedData;
+                if (typeof deseneazaGrafice === "function") {
+                    deseneazaGrafice(dateCurrente);
+                }
+                if (typeof deseneazaHarta === "function") {
+                    deseneazaHarta(dateCurrente);
+                    adaugaLegendharta();
+                }
+                return;
+            }
 
             fetch(`../backend/api/get_data.php?an=${an}&luna=${luna}&judet=${judet}`)
                 .then(response => response.json())
@@ -353,33 +632,161 @@
                     if (data.success && data.count > 0) {
                         statusDiv.innerHTML = `Succes! S-au găsit ${data.count} rezultate.`;
 
+                        dateCurrente = data.data;
+                        setCachedData(cacheKey, dateCurrente);
+
                         if (typeof deseneazaGrafice === "function") {
-                            deseneazaGrafice(data.data);
+                            deseneazaGrafice(dateCurrente);
                         } else {
                             console.error("Nu ai importat fișierul charts.js sau funcția deseneazaGrafice lipsește!");
                         }
 
+                        if (typeof deseneazaHarta === "function") {
+                            deseneazaHarta(dateCurrente);
+                            adaugaLegendharta();
+                        }
                     } else {
                         statusDiv.innerHTML = "Nu s-au găsit date pentru această perioadă.";
+                        console.error("API Response:", data);
                     }
                 })
                 .catch(error => {
-                    statusDiv.innerHTML = "Eroare de rețea.";
+                    statusDiv.innerHTML = "Eroare de rețea: " + error.message;
                     console.error(error);
                 });
 
-                   fetch(`../backend/api/get_evolution.php?judet=${judet}`)
-            .then(response => response.json())
-            .then(data => {
-                console.log("DATE EVOLUTIE:", data);
+            fetch(`../backend/api/get_evolution.php?judet=${judet}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success && typeof deseneazaEvolutie === "function") {
+                        deseneazaEvolutie(data.data);
+                    } else {
+                        console.error("Eroare la evoluție:", data);
+                    }
+                })
+                .catch(err => console.error("Eroare la fetch evoluție:", err));
+        });
+    </script>
 
-                if (data.success && typeof deseneazaEvolutie === "function") {
-                    deseneazaEvolutie(data.data);
+    <!-- Modal Export -->
+    <div id="exportModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">Alege ce să exporti</div>
+            <div class="modal-body">
+                <div style="margin-bottom: 1.5rem;">
+                    <h4 style="margin-top: 0;">Ce date să exportez?</h4>
+                    <div class="export-option">
+                        <label>
+                            <input type="radio" name="exportType" value="data" checked> Date brute (Tabel complet)
+                        </label>
+                    </div>
+                    <div class="export-option">
+                        <label>
+                            <input type="radio" name="exportType" value="chart-judete"> Grafic - Județe
+                        </label>
+                    </div>
+                    <div class="export-option">
+                        <label>
+                            <input type="radio" name="exportType" value="chart-varsta"> Grafic - Vârstă
+                        </label>
+                    </div>
+                    <div class="export-option">
+                        <label>
+                            <input type="radio" name="exportType" value="chart-educatie"> Grafic - Educație
+                        </label>
+                    </div>
+                </div>
+
+                <div class="export-format">
+                    <h4 style="margin-top: 0;">Ce format?</h4>
+                    <div class="export-option">
+                        <label>
+                            <input type="radio" name="exportFormat" value="csv" checked> CSV
+                        </label>
+                    </div>
+                    <div class="export-option">
+                        <label>
+                            <input type="radio" name="exportFormat" value="pdf"> PDF
+                        </label>
+                    </div>
+                    <div class="export-option">
+                        <label>
+                            <input type="radio" name="exportFormat" value="svg" id="formatSVG"> SVG
+                        </label>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-cancel" onclick="closeExportModal()">Anulează</button>
+                <button class="btn-export" id="btnConfirmExport" onclick="performExport()">Descarcă</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function openExportModal() {
+            if (!dateCurrente || dateCurrente.length === 0) {
+                alert("Aplică filtrele pentru a avea date de exportat!");
+                return;
+            }
+            document.getElementById('exportModal').classList.add('show');
+        }
+
+        function closeExportModal() {
+            document.getElementById('exportModal').classList.remove('show');
+        }
+
+        function performExport() {
+            const exportType = document.querySelector('input[name="exportType"]:checked').value;
+            const exportFormat = document.querySelector('input[name="exportFormat"]:checked').value;
+
+            if (exportType === 'data') {
+                if (exportFormat === 'csv') {
+                    exportToCSV(dateCurrente, anCurent, lunaCurenta);
+                } else if (exportFormat === 'pdf') {
+                    try {
+                        exportToPDF(dateCurrente, anCurent, lunaCurenta);
+                    } catch (err) {
+                        console.error("Eroare export PDF:", err);
+                        alert("Eroare la export PDF. Încearcă din nou!");
+                    }
+                } else if (exportFormat === 'svg') {
+                    alert("SVG este disponibil doar pentru grafice, nu pentru date brute!");
+                    return;
                 }
-            })
-            .catch(err => console.error("Eroare la evoluție:", err));
+            } else {
+                let chartId = '';
+                let fileName = '';
+
+                if (exportType === 'chart-judete') {
+                    chartId = 'mainBarChart';
+                    fileName = `somaj_judete_${anCurent}_${lunaCurenta}`;
+                } else if (exportType === 'chart-varsta') {
+                    chartId = 'ageBarChart';
+                    fileName = `somaj_varsta_${anCurent}_${lunaCurenta}`;
+                } else if (exportType === 'chart-educatie') {
+                    chartId = 'eduBarChart';
+                    fileName = `somaj_educatie_${anCurent}_${lunaCurenta}`;
+                }
+
+                if (exportFormat !== 'svg') {
+                    alert("Graficele pot fi exportate doar în format SVG!");
+                    return;
+                }
+
+                exportChartToSVG(chartId, fileName);
+            }
+
+            closeExportModal();
+        }
+
+        document.getElementById('btn-export-data').addEventListener('click', openExportModal);
+
+        document.getElementById('exportModal').addEventListener('mousedown', function(event) {
+            if (event.target === this) {
+                closeExportModal();
+            }
         });
     </script>
 </body>
-
 </html>
