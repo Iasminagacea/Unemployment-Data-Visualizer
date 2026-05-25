@@ -2,7 +2,6 @@
 require_once '../db/Database.php';
 
 header('Content-Type: application/json');
-header("Access-Control-Allow-Origin: *"); 
 
 try {
     $an = isset($_GET['an']) ? (int)$_GET['an'] : null;
@@ -18,8 +17,6 @@ try {
         exit;
     }
 
-    error_log("get_data.php called: an=$an, luna=$luna, judet='$judet'");
-
     $database = new Database();
     $db = $database->getConnection();
 
@@ -33,13 +30,9 @@ try {
 
     $query .= " ORDER BY judet ASC";
 
-    error_log("Executing query: $query with params: " . json_encode($params));
-
     $stmt = $db->prepare($query);
     $stmt->execute($params);
     $rezultate = $stmt->fetchAll(PDO::FETCH_ASSOC);
-
-    error_log("Query result count: " . count($rezultate));
     
     if (count($rezultate) === 0) {
         error_log("WARNING: Query returned 0 results for an=$an, luna=$luna, judet='$judet'");

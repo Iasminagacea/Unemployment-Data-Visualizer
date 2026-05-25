@@ -2,8 +2,7 @@
 require_once '../db/Database.php';
 require_once '../db/CacheManager.php';
 
-header('Content-Type: application/json');
-header("Access-Control-Allow-Origin: *"); 
+header('Content-Type: application/json'); 
 
 try {
     $judet = isset($_GET['judet']) ? $_GET['judet'] : null;

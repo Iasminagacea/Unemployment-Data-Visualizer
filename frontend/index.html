@@ -268,6 +268,9 @@
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
             max-width: 500px;
             width: 90%;
+            max-height: 90vh;
+            display: flex;
+            flex-direction: column;
             animation: slideIn 0.3s ease-out;
         }
 
@@ -292,6 +295,27 @@
 
         .modal-body {
             margin-bottom: 1.5rem;
+            overflow-y: auto;
+            max-height: calc(90vh - 250px);
+            padding-right: 0.5rem;
+        }
+
+        .modal-body::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .modal-body::-webkit-scrollbar-track {
+            background: var(--bg-color);
+            border-radius: 10px;
+        }
+
+        .modal-body::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 10px;
+        }
+
+        .modal-body::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
         }
 
         .export-option {
@@ -456,7 +480,7 @@
                 <div class="filter-group">
                     <label for="filter-judet">Județ (Opțional):</label>
                     <select id="filter-judet">
-                        <option value="">Toată România (Comparare)</option>
+                        <option value="">Toată România</option>
                     </select>
                 </div>
 
@@ -564,7 +588,6 @@
             }
         }, true);
 
-        // Apelează graficul de evoluție la inițializare (pentru România întreagă)
         window.addEventListener('load', function() {
             setTimeout(function() {
                 fetch(`../backend/api/get_evolution.php?judet=`)
@@ -668,10 +691,10 @@
         });
     </script>
 
-    <!-- Modal Export -->
+    <!-- Export -->
     <div id="exportModal" class="modal">
         <div class="modal-content">
-            <div class="modal-header">Alege ce să exporti</div>
+            <div class="modal-header">Alege ce să exporți</div>
             <div class="modal-body">
                 <div style="margin-bottom: 1.5rem;">
                     <h4 style="margin-top: 0;">Ce date să exportez?</h4>
@@ -693,6 +716,21 @@
                     <div class="export-option">
                         <label>
                             <input type="radio" name="exportType" value="chart-educatie"> Grafic - Educație
+                        </label>
+                    </div>
+                    <div class="export-option">
+                        <label>
+                            <input type="radio" name="exportType" value="chart-gen"> Grafic - Gen
+                        </label>
+                    </div>
+                    <div class="export-option">
+                        <label>
+                            <input type="radio" name="exportType" value="chart-mediu"> Grafic - Mediu
+                        </label>
+                    </div>
+                    <div class="export-option">
+                        <label>
+                            <input type="radio" name="exportType" value="chart-evolutie"> Grafic - Evoluție în Timp
                         </label>
                     </div>
                 </div>
@@ -767,6 +805,15 @@
                 } else if (exportType === 'chart-educatie') {
                     chartId = 'eduBarChart';
                     fileName = `somaj_educatie_${anCurent}_${lunaCurenta}`;
+                } else if (exportType === 'chart-gen') {
+                    chartId = 'genderPieChart';
+                    fileName = `somaj_gen_${anCurent}_${lunaCurenta}`;
+                } else if (exportType === 'chart-mediu') {
+                    chartId = 'mediuDoughnutChart';
+                    fileName = `somaj_mediu_${anCurent}_${lunaCurenta}`;
+                } else if (exportType === 'chart-evolutie') {
+                    chartId = 'evolutionLineChart';
+                    fileName = `somaj_evolutie_${anCurent}_${lunaCurenta}`;
                 }
 
                 if (exportFormat !== 'svg') {

@@ -2,12 +2,47 @@
 <html lang="ro">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>UnD - Modul Administrare</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">    <title>UnD - Modul Administrare</title>
     <style>
         body {
             font-family: Arial, sans-serif;
             padding: 20px;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 2px solid #ccc;
+        }
+
+        header h1 {
+            margin: 0;
+            font-size: 1.8rem;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        .btn-logout {
+            background-color: #d32f2f;
+            color: white;
+            border: none;
+            padding: 0.7rem 1.5rem;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: background 0.3s;
+            font-size: 1rem;
+        }
+
+        .btn-logout:hover {
+            background-color: #b71c1c;
         }
 
         .form-group {
@@ -22,7 +57,12 @@
     </style>
 </head>
 <body>
-    <h2>Import Date Șomaj (ANOFM)</h2>
+    <header>
+        <h1>Modul Administrare - Import Date Șomaj</h1>
+        <div class="header-actions">
+            <button class="btn-logout" id="btn-logout">Logout</button>
+        </div>
+    </header>
 
     <form id="importForm" enctype="multipart/form-data">
         <div class="form-group">
@@ -57,8 +97,7 @@
     </form>
 
     <hr>
-    <div id="statusMessage"></div>
-
+    <div id="statusMessage"></div>    
     <script>
         fetch('../backend/api/check_auth.php')
             .then(response => response.json())
@@ -67,6 +106,24 @@
                     window.location.href = 'login.html';
                 }
             });
+
+        document.getElementById('btn-logout').addEventListener('click', function() {
+            if (confirm('Sigur vrei să ieși din cont?')) {
+                fetch('../backend/api/logout.php', {
+                    method: 'POST'
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        window.location.href = 'login.html';
+                    }
+                })
+                .catch(error => {
+                    console.error('Logout error:', error);
+                    alert('Eroare de rețea! Nu am putut comunica cu serverul pentru delogare.'); 
+                });
+            }
+        });
 
         document.getElementById('importForm').addEventListener('submit', function(e) {
             e.preventDefault();
@@ -96,7 +153,7 @@
                             localStorage.removeItem(key);
                         }
                     }
-                    statusDiv.innerHTML += "<br><b style='color: green;'>✓ Cache local invalidat pentru luna " + lunaImportata + "/" + anImportat + "!</b>";
+                    statusDiv.innerHTML += "<br><b style='color: green;'>Cache local invalidat pentru luna " + lunaImportata + "/" + anImportat + "!</b>";
 
                     this.reset();
                 } else {

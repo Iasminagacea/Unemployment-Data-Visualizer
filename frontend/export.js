@@ -33,25 +33,22 @@ function exportChartToSVG(chartId, fileName) {
         return;
     }
 
-    // Convertim canvas la PNG, apoi la SVG
     const image = canvas.toDataURL('image/png');
 
-    // Luăm dimensiunile canvasului
     const width = canvas.width;
     const height = canvas.height;
 
-    // Creăm un SVG valid
     const svg = `<?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}">
     <defs>
         <style type="text/css">
             <![CDATA[
-                text { font-family: Arial, sans-serif; }
-                .title { font-size: 16px; font-weight: bold; }
+                text { font-family: Arial, Helvetica, sans-serif; }
+                .chart-title { font-size: 16px; font-weight: bold; }
             ]]>
         </style>
     </defs>
-    <rect width="${width}" height="${height}" fill="white"/>
+    <rect width="${width}" height="${height}" fill="white" stroke="none"/>
     <image width="${width}" height="${height}" xlink:href="${image}"/>
 </svg>`;
 
@@ -66,6 +63,8 @@ function exportChartToSVG(chartId, fileName) {
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
+
+    setTimeout(() => URL.revokeObjectURL(url), 100);
 }
 
 async function exportToPDF(dateSomeri, anul, luna) {

@@ -32,7 +32,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if (!isset($judet)) return '';
         $j = strtoupper(trim($judet));
         $j = str_replace(['"', "'"], '', $j);
-        
+
         if (strpos($j, 'BUC') !== false) return 'BUCURESTI';
         if (strpos($j, 'BISTRITA') !== false) return 'BISTRITA-NASAUD';
         if (strpos($j, 'CARA') !== false) return 'CARAS-SEVERIN';
@@ -43,25 +43,88 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $file = fopen($file_path, 'r');
         $first_line = fgets($file);
         fclose($file);
-        
+
         $comma_count = substr_count($first_line, ',');
         $semicolon_count = substr_count($first_line, ';');
-        
+
         return ($comma_count > $semicolon_count) ? ',' : ';';
+    }
+
+    function validate_csv_structure($file_path, $type) {
+        $delimiter = detect_delimiter($file_path);
+        $file = fopen($file_path, 'r');
+        $header = fgetcsv($file, 1000, $delimiter);
+        fclose($file);
+
+        if (!$header) {
+            return false;
+        }
+
+        $header = array_map(function($h) {
+            return strtolower(trim($h));
+        }, $header);
+
+        switch ($type) {
+            case 'general':
+                return isset($header[0]) && (strpos($header[0], 'judet') !== false || strpos($header[0], 'county') !== false)
+                    && isset($header[1]) && (strpos($header[1], 'total') !== false || strpos($header[1], 'someri') !== false)
+                    && isset($header[2]) && (strpos($header[2], 'femei') !== false || strpos($header[2], 'women') !== false);
+
+            case 'mediu':
+                $headers_str = implode(' ', $header);
+                return strpos($headers_str, 'judet') !== false
+                    && strpos($headers_str, 'urban') !== false
+                    && strpos($headers_str, 'rural') !== false;
+
+            case 'varsta':
+                $headers_str = implode(' ', $header);
+                return strpos($headers_str, 'judet') !== false
+                    && (strpos($headers_str, '25') !== false || strpos($headers_str, 'age') !== false || strpos($headers_str, 'varsta') !== false);
+
+            case 'educatie':
+                $headers_str = implode(' ', $header);
+                return strpos($headers_str, 'judet') !== false
+                    && (strpos($headers_str, 'fara') !== false || strpos($headers_str, 'primar') !== false
+                        || strpos($headers_str, 'gimnazial') !== false || strpos($headers_str, 'education') !== false);
+
+            default:
+                return false;
+        }
     }
 
     try {
         $database = new Database();
         $db = $database->getConnection();
 
+        if (!validate_csv_structure($_FILES['csv_general']['tmp_name'], 'general')) {
+            echo json_encode(["success" => false, "message" => "Fișierul 'General' are structură greșită! Asigură-te că conține coloanele: Județ, Total, Femei, Bărbați, etc."]);
+            exit;
+        }
+
+        if (!validate_csv_structure($_FILES['csv_mediu']['tmp_name'], 'mediu')) {
+            echo json_encode(["success" => false, "message" => "Fișierul 'Mediu' are structură greșită! Asigură-te că conține coloanele: Județ, Urban, Rural"]);
+            exit;
+        }
+
+        if (!validate_csv_structure($_FILES['csv_varsta']['tmp_name'], 'varsta')) {
+            echo json_encode(["success" => false, "message" => "Fișierul 'Vârstă' are structură greșită! Asigură-te că conține coloanele: Județ, <25, 25-29, 30-39, etc."]);
+            exit;
+        }
+
+        if (!validate_csv_structure($_FILES['csv_educatie']['tmp_name'], 'educatie')) {
+            echo json_encode(["success" => false, "message" => "Fișierul 'Educație' are structură greșită! Asigură-te că conține coloanele: Județ, Fără studii, Primar, Gimnazial, etc."]);
+            exit;
+        }
+
         $date_combinate = [];
 
+         // CSV 1: General (Total, Femei, Bărbați)
         $del1 = detect_delimiter($_FILES['csv_general']['tmp_name']);
         $f1 = fopen($_FILES['csv_general']['tmp_name'], 'r');
-        fgetcsv($f1, 1000, $del1); 
+        fgetcsv($f1, 1000, $del1);
         while (($row = fgetcsv($f1, 1000, $del1)) !== FALSE) {
-            if (!isset($row[0])) continue; 
-            
+            if (!isset($row[0])) continue;
+
             $judet = normalize_judet($row[0]);
             if (empty($judet) || $judet === 'TOTAL' || $judet === 'TOTAL TARA' || strlen($judet) > 40) continue;
 
@@ -74,6 +137,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
         fclose($f1);
 
+        // CSV 2: Mediu (Urban/Rural)
         $del2 = detect_delimiter($_FILES['csv_mediu']['tmp_name']);
         $f2 = fopen($_FILES['csv_mediu']['tmp_name'], 'r');
         fgetcsv($f2, 1000, $del2);
@@ -87,6 +151,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
         fclose($f2);
 
+        // CSV 3: Vârstă
         $del3 = detect_delimiter($_FILES['csv_varsta']['tmp_name']);
         $f3 = fopen($_FILES['csv_varsta']['tmp_name'], 'r');
         fgetcsv($f3, 1000, $del3);
@@ -104,6 +169,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
         fclose($f3);
 
+         // CSV 4: Educație
         $del4 = detect_delimiter($_FILES['csv_educatie']['tmp_name']);
         $f4 = fopen($_FILES['csv_educatie']['tmp_name'], 'r');
         fgetcsv($f4, 1000, $del4);
@@ -137,7 +203,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                   varsta_40_49 = EXCLUDED.varsta_40_49, varsta_50_55 = EXCLUDED.varsta_50_55, varsta_peste_55 = EXCLUDED.varsta_peste_55,
                   edu_fara_studii = EXCLUDED.edu_fara_studii, edu_primar = EXCLUDED.edu_primar, edu_gimnazial = EXCLUDED.edu_gimnazial, 
                   edu_liceal = EXCLUDED.edu_liceal, edu_postliceal = EXCLUDED.edu_postliceal, edu_profesional = EXCLUDED.edu_profesional, edu_universitar = EXCLUDED.edu_universitar";
-                  
+
         $stmt = $db->prepare($query);
         $inserari = 0;
 
@@ -151,7 +217,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         require_once '../db/CacheManager.php';
         $cache = new CacheManager();
-        
+
         $cacheDir = __DIR__ . '/../cache/';
         if (is_dir($cacheDir)) {
             $files = glob($cacheDir . '*.cache');
@@ -161,10 +227,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 }
             }
         }
-        
-        error_log("Import complete: $inserari items for $luna/$an. Cache invalidated.");
-        
-        echo json_encode(["success" => true, "message" => "Import complet! S-au procesat și combinat $inserari județe pentru luna $luna/$an. Cache invalidat pentru reîncărcare datelor noi."]);
+
+        echo json_encode(["success" => true, "message" => "Import complet! S-au procesat și combinat $inserari județe pentru luna $luna/$an."]);
 
     } catch (Exception $e) {
         echo json_encode(["success" => false, "message" => "Eroare baza de date: " . $e->getMessage()]);
