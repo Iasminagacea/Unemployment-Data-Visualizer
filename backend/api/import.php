@@ -10,11 +10,11 @@ if (!isset($_SESSION['is_admin']) || $_SESSION['is_admin'] !== true) {
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $an = $_POST['an'] ?? null;
-    $luna = $_POST['luna'] ?? null;
+    $an = isset($_POST['an']) ? (int)$_POST['an'] : null;
+    $luna = isset($_POST['luna']) ? (int)$_POST['luna'] : null;
 
-    if (!$an || !$luna) {
-        echo json_encode(["success" => false, "message" => "Anul și luna sunt obligatorii!"]);
+    if (!$an || !$luna || $an < 2000 || $an > 2100 || $luna < 1 || $luna > 12) {
+        echo json_encode(["success" => false, "message" => "Anul și luna sunt obligatorii și valide!"]);
         exit;
     }
 
@@ -26,12 +26,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     function parse_number($str) {
         if (!isset($str)) return 0;
         return (int) preg_replace('/[^0-9]/', '', $str);
-    }
-
+    }   
+     
     function normalize_judet($judet) {
         if (!isset($judet)) return '';
         $j = strtoupper(trim($judet));
         $j = str_replace(['"', "'"], '', $j);
+        
+        $j = preg_replace('/[^A-Z0-9\s\-]/u', '', $j);
 
         if (strpos($j, 'BUC') !== false) return 'BUCURESTI';
         if (strpos($j, 'BISTRITA') !== false) return 'BISTRITA-NASAUD';

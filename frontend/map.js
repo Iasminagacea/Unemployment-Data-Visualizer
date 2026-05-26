@@ -45,6 +45,12 @@ const judeteCoordonate = {
     "VRANCEA": [45.4, 26.8]
 };
 
+function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+
 function deseneazaHarta(dateSomeri) {
     if (!mapInstance) {
         mapInstance = L.map('harta-somaj').setView([45.9432, 24.9668], 7);
@@ -92,12 +98,12 @@ function deseneazaHarta(dateSomeri) {
         }).addTo(mapInstance);
 
         circle.bindPopup(`
-            <strong>${judet.judet}</strong><br>
-            Total Șomeri: ${judet.total_someri}<br>
-            Femei: ${judet.someri_femei}<br>
-            Bărbați: ${judet.someri_barbati}<br>
-            Urban: ${judet.someri_urban}<br>
-            Rural: ${judet.someri_rural}
+            <strong>${escapeHtml(judet.judet)}</strong><br>
+            Total Șomeri: ${parseInt(judet.total_someri) || 0}<br>
+            Femei: ${parseInt(judet.someri_femei) || 0}<br>
+            Bărbați: ${parseInt(judet.someri_barbati) || 0}<br>
+            Urban: ${parseInt(judet.someri_urban) || 0}<br>
+            Rural: ${parseInt(judet.someri_rural) || 0}
         `);
     });
 }

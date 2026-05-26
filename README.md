@@ -4,6 +4,8 @@ Acesta este un instrument Web dezvoltat pentru prelucrarea și gestionarea datel
 
 Proiect realizat pentru disciplina Tehnologii Web.
 
+**Videoul demonstrativ este disponibil la adresa:** https://www.loom.com/share/50411509bdfd4803b34cef5d1540c591
+
 ## Funcționalități Implementate
 
 ### 1. Modul de Administrare și Arhitectură Bază de Date
@@ -57,6 +59,10 @@ Aplicația expune 6 endpoint-uri RESTful pentru o integrare completă:
 ## Caracteristici de Securitate
 * **Autentificare:** Sistem de sesiuni PHP securizat cu validare în fiecare pagină protejată
 * **SQL Injection Prevention:** Toate query-urile folosesc prepared statements (PDO) cu parametri legați
+* **XSS (Cross-Site Scripting) Prevention:** 
+  - Escape HTML pentru popupuri hartă (funcția `escapeHtml()`)
+  - Sanitizare input județe (remove caractere speciale, regex validation)
+  - Type casting pentru an/luna (int validation pe backend)
 * **CSV Validation:** Verificarea structurii și antetelor fișierelor CSV pentru prevenirea erorilor de import
 * **File Protection:** Fișierul env.ini (credențiale) protejat prin .htaccess
 * **Error Handling:** Gestionare granulară a erorilor în PHP și JavaScript

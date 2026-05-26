@@ -192,7 +192,7 @@ async function exportToPDF(dateSomeri, anul, luna) {
     } catch (error) {
         console.error("Eroare la export PDF:", error);
         console.error("Stack:", error.stack);
-        alert(`Eroare la generarea PDF: ${error.message}\n\nVerifică consola (F12) pentru detalii.`);
+        alert(`Eroare la generarea PDF: ${error.message}\n\n`);
     } finally {
         btn.textContent = originalText;
         btn.disabled = false;
