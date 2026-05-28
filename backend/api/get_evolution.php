@@ -2,14 +2,14 @@
 require_once '../db/Database.php';
 require_once '../db/CacheManager.php';
 
-header('Content-Type: application/json'); 
+header('Content-Type: application/json');
 
 try {
     $judet = isset($_GET['judet']) ? $_GET['judet'] : null;
 
-    $cache = new CacheManager(3600); 
+    $cache = new CacheManager(3600);
     $cacheKey = $cache->getCacheKey('evolution_', ['judet' => $judet]);
-    
+
     $rezultate = $cache->get($cacheKey);
     if ($rezultate !== null) {
         echo json_encode(["success" => true, "data" => $rezultate, "cached" => true]);

@@ -33,7 +33,7 @@ try {
     $stmt = $db->prepare($query);
     $stmt->execute($params);
     $rezultate = $stmt->fetchAll(PDO::FETCH_ASSOC);
-    
+
     if (count($rezultate) === 0) {
         error_log("WARNING: Query returned 0 results for an=$an, luna=$luna, judet='$judet'");
         error_log("Query was: $query");

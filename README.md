@@ -4,7 +4,7 @@ Acesta este un instrument Web dezvoltat pentru prelucrarea și gestionarea datel
 
 Proiect realizat pentru disciplina Tehnologii Web.
 
-**Videoul demonstrativ este disponibil la adresa:** https://www.loom.com/share/50411509bdfd4803b34cef5d1540c591
+**Videoul demonstrativ este disponibil la adresa:** https://www.loom.com/share/49fdb79dda1a4709a9ebafeb6f521c6a
 
 ## Funcționalități Implementate
 

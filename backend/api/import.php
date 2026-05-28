@@ -68,9 +68,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         switch ($type) {
             case 'general':
-                return isset($header[0]) && (strpos($header[0], 'judet') !== false || strpos($header[0], 'county') !== false)
-                    && isset($header[1]) && (strpos($header[1], 'total') !== false || strpos($header[1], 'someri') !== false)
-                    && isset($header[2]) && (strpos($header[2], 'femei') !== false || strpos($header[2], 'women') !== false);
+                $headers_str = implode(' ', $header);
+                return strpos($headers_str, 'indemnizati') !== false;
 
             case 'mediu':
                 $headers_str = implode(' ', $header);
@@ -120,7 +119,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         $date_combinate = [];
 
-         // CSV 1: General (Total, Femei, Bărbați)
+        // CSV 1: General (Total, Femei, Bărbați)
         $del1 = detect_delimiter($_FILES['csv_general']['tmp_name']);
         $f1 = fopen($_FILES['csv_general']['tmp_name'], 'r');
         fgetcsv($f1, 1000, $del1);
@@ -171,7 +170,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
         fclose($f3);
 
-         // CSV 4: Educație
+        // CSV 4: Educație
         $del4 = detect_delimiter($_FILES['csv_educatie']['tmp_name']);
         $f4 = fopen($_FILES['csv_educatie']['tmp_name'], 'r');
         fgetcsv($f4, 1000, $del4);
