@@ -1,103 +1,101 @@
-﻿# UnD (Unemployment Data Visualizer)
+# UnD (Unemployment Data Visualizer)
 
-Acesta este un instrument Web dezvoltat pentru prelucrarea și gestionarea datelor publice referitoare la șomajul din România, pe baza seturilor de date furnizate de ANOFM. 
+This is a Web tool developed for processing and managing public data related to unemployment in Romania, based on datasets provided by ANOFM. 
 
-Proiect realizat pentru disciplina Tehnologii Web.
+Project created for the Web Technologies course.
 
-**Videoul demonstrativ este disponibil la adresa:** https://www.loom.com/share/49fdb79dda1a4709a9ebafeb6f521c6a
+**The demonstration video is available at:** https://www.loom.com/share/49fdb79dda1a4709a9ebafeb6f521c6a
 
-## Funcționalități Implementate
+## Implemented Features
 
-### 1. Modul de Administrare și Arhitectură Bază de Date
-* **Autentificare Administrator:** Sistem securizat de login pe bază de sesiuni PHP. Endpoint-ul de API (`check_auth.php`) previne accesul neautorizat la pagina de import. Logout protejat cu dialog de confirmare.
-* **Procesare Inteligentă CSV:** Modulul de import acceptă încărcarea simultană a 4 fișiere CSV (General, Mediu, Vârstă, Educație). Există o logică avansată pentru:
-  - Detectarea automată a delimitatorului (virgulă sau punct-și-virgulă)
-  - Curățarea numerelor (eliminarea punctelor de mii)
-  - Normalizarea numelor de județe
-  - **Validare Structură CSV:** Verificarea antetelor pentru a preveni încărcarea accidentală a fișierelor în poziții greșite
-* **Bază de Date (Upsert):** Salvarea datelor în baza de date PostgreSQL folosind instrucțiuni preparate (PDO) cu prevenirea duplicatelor pe baza cheii compuse `(an, luna, judet)`.
-* **API de Extragere:** Endpoint-uri RESTful pentru interogarea asincronă a datelor în funcție de anul, luna și județul selectat.
+### 1. Admin Module and Database Architecture
+* **Admin Authentication:** Secure login system based on PHP sessions. The API endpoint (`check_auth.php`) prevents unauthorized access to the import page. Logout protected with a confirmation dialog.
+* **Smart CSV Processing:** The import module supports the simultaneous upload of 4 CSV files (General, Environment, Age, Education). Advanced logic is in place for:
+  - Automatic delimiter detection (comma or semicolon)
+  - Number cleaning (removing thousands separators)
+  - Normalization of county names
+  - **CSV Structure Validation:** Header verification to prevent accidental file uploads in incorrect slots
+* **Database (Upsert):** Saving data into the PostgreSQL database using prepared statements (PDO) with duplicate prevention based on the composite key `(an, luna, judet)`.
+* **Extraction API:** RESTful endpoints for asynchronous data querying based on the selected year, month, and county.
 
-### 2. Interfață Publică (Frontend) și Filtrare
-* **Design Responsiv:** Interfață construită folosind CSS Grid și Flexbox pentru adaptarea perfectă pe desktop și mobil.
-* **Filtrare Dinamică:** Filtre interactive interdependente. Meniul drop-down pentru luni se actualizează dinamic prin JavaScript în funcție de anul selectat, iar utilizatorul poate filtra datele la nivel național sau pentru un județ specific.
+### 2. Public Interface (Frontend) and Filtering
+* **Responsive Design:** Interface built using CSS Grid and Flexbox for perfect adaptation on desktop and mobile devices.
+* **Dynamic Filtering:** Interdependent interactive filters. The drop-down menu for months updates dynamically via JavaScript based on the selected year, and the user can filter data at a national level or for a specific county.
 
-### 3. Vizualizare și Comparare Multi-Criterială
-Aplicația permite analiza șomajului prin **7 maniere de vizualizare:**
-* **Comparație Județe:** Bar Chart cu totalul șomerilor pe județ.
-* **Distribuție Gen:** Pie Chart (Femei vs. Bărbați).
-* **Mediu (Urban / Rural):** Doughnut Chart.
-* **Nivel de Educație:** Bar Chart (7 categorii).
-* **Grupe de Vârstă:** Bar Chart (6 grupe: <25, 25-29, 30-39, 40-49, 50-55, >55).
-* **Evoluție în Timp:** Line Chart cu date istorice (luni/ani).
+### 3. Multi-Criteria Visualization and Comparison
+The application allows unemployment analysis through **7 visualization methods:**
+* **County Comparison:** Bar Chart showing total unemployed individuals per county.
+* **Gender Distribution:** Pie Chart (Women vs. Men).
+* **Environment (Urban / Rural):** Doughnut Chart.
+* **Education Level:** Bar Chart (7 categories).
+* **Age Groups:** Bar Chart (6 groups: <25, 25-29, 30-39, 40-49, 50-55, >55).
+* **Evolution over Time:** Line Chart with historical data (months/years).
 
-### 4. Hartă Interactivă (Leaflet.js + OpenStreetMap)
-* **42 Județe:** Cercuri color-coded cu gradient (verde → roșu) după densitatea șomajului.
-* **Dimensiune Dinamică:** Raza cercului proporțională cu numărul de șomeri.
-* **Pop-up-uri:** Click pe județ pentru a vedea statistici detaliate.
-* **Integrare:** Actualizare automată pe schimbarea filtrelor (an/lună).
+### 4. Interactive Map (Leaflet.js + OpenStreetMap)
+* **42 Counties:** Color-coded circles with a gradient (green → red) based on unemployment density.
+* **Dynamic Sizing:** Circle radius proportional to the number of unemployed individuals.
+* **Pop-ups:** Click on a county to view detailed statistics.
+* **Integration:** Automatic update upon changing filters (year/month).
 
-### 5. Export de Date și Grafice
-* **Grafice:** 6 tipuri exportabile în SVG (județe, gen, mediu, educație, vârstă, evoluție).
-* **Date:** Export în CSV (UTF-8 cu BOM) și PDF (A4 landscape).
-* **Validare:** SVG pentru grafice, CSV/PDF pentru date.
+### 5. Data and Chart Export
+* **Charts:** 6 types exportable to SVG (counties, gender, environment, education, age, evolution).
+* **Data:** Export to CSV (UTF-8 with BOM) and PDF (A4 landscape).
+* **Validation:** SVG for charts, CSV/PDF for data.
 
-### 6. Caching Stratificat
-* **Backend:** File-based cache cu TTL 1 oră (CacheManager.php) pentru API responses.
-* **Frontend:** localStorage pentru persistență date între sesiuni.
-* **Performance:** Reducere semnificativă a query-urilor la bază.
+### 6. Layered Caching
+* **Backend:** File-based cache with a 1-hour TTL (CacheManager.php) for API responses.
+* **Frontend:** localStorage for data persistence between sessions.
+* **Performance:** Significant reduction of database queries.
 
-## Endpoint-uri API
-Aplicația expune 6 endpoint-uri RESTful pentru o integrare completă:
-* **`login.php`** - Autentificare administrator cu sesiune PHP
-* **`logout.php`** - Logout și distrugerea sesiunii
-* **`check_auth.php`** - Validarea autentificării utilizatorului curent
-* **`import.php`** - Procesare și validare 4 fișiere CSV simultane
-* **`get_data.php`** - Extragere date pentru luna selectată (cu cache 1h)
-* **`get_evolution.php`** - Extragere date time-series (cu agregare și cache 1h)
+## API Endpoints
+The application exposes 6 RESTful endpoints for full integration:
+* **`login.php`** - Admin authentication with PHP session
+* **`logout.php`** - Logout and session destruction
+* **`check_auth.php`** - Validation of current user authentication
+* **`import.php`** - Simultaneous processing and validation of 4 CSV files
+* **`get_data.php`** - Data extraction for the selected month (with 1h cache)
+* **`get_evolution.php`** - Time-series data extraction (with aggregation and 1h cache)
 
-## Caracteristici de Securitate
-* **Autentificare:** Sistem de sesiuni PHP securizat cu validare în fiecare pagină protejată
-* **SQL Injection Prevention:** Toate query-urile folosesc prepared statements (PDO) cu parametri legați
-* **XSS (Cross-Site Scripting) Prevention:** 
-  - Escape HTML pentru popupuri hartă (funcția `escapeHtml()`)
-  - Sanitizare input județe (remove caractere speciale, regex validation)
-  - Type casting pentru an/luna (int validation pe backend)
-* **CSV Validation:** Verificarea structurii și antetelor fișierelor CSV pentru prevenirea erorilor de import
-* **File Protection:** Fișierul env.ini (credențiale) protejat prin .htaccess
-* **Error Handling:** Gestionare granulară a erorilor în PHP și JavaScript
+## Security Features
+* **Authentication:** Secure PHP session system with validation on every protected page
+* **SQL Injection Prevention:** All queries use prepared statements (PDO) with bound parameters
+* **XSS (Cross-Site Scripting) Prevention:** - HTML escaping for map pop-ups (using the `escapeHtml()` function)
+  - County input sanitization (removes special characters, regex validation)
+  - Type casting for year/month (int validation on the backend)
+* **CSV Validation:** Verification of CSV structure and headers to prevent import errors
+* **File Protection:** The env.ini file (credentials) is protected via .htaccess
+* **Error Handling:** Granular error management in PHP and JavaScript
 
-## Tehnologii Utilizate
+## Technologies Used
 * **Frontend:** HTML5, CSS3 (Grid, Flexbox), Vanilla JavaScript, Chart.js (CDN), Leaflet.js (CDN).
-* **Backend:** PHP pur (Sesiuni, PDO).
-* **Bază de date:** PostgreSQL.
-* **Caching:** File-based backend (1 oră TTL) + localStorage frontend.
-* **Arhitectură:** Client-Server, fără framework, 100% API-based.
+* **Backend:** Pure PHP (Sessions, PDO).
+* **Database:** PostgreSQL.
+* **Caching:** File-based backend (1-hour TTL) + frontend localStorage.
+* **Architecture:** Client-Server, frameworkless, 100% API-based.
 
-## Structura Proiectului
-``````text
+## Project Structure
+```text
 Unemployment-Data-Visualizer/
 ├── frontend/
-│   ├── login.html          # Interfață login administrator
-│   ├── admin.html          # Import CSV (protejat cu sesiune)
-│   ├── index.html          # Interfață publică cu filtre și grafice
-│   ├── charts.js           # Logică Chart.js (6 grafice)
-│   ├── export.js           # Export SVG/CSV/PDF
-│   ├── map.js              # Hartă Leaflet cu 42 județe
-│   └── images/             # Resurse statice
+│   ├── login.html          # Admin login interface
+│   ├── admin.html          # CSV Import (session-protected)
+│   ├── index.html          # Public interface with filters and charts
+│   ├── charts.js           # Chart.js logic (6 charts)
+│   ├── export.js           # SVG/CSV/PDF export
+│   ├── map.js              # Leaflet map with 42 counties
+│   └── images/             # Static assets
 ├── backend/
 │   ├── db/
 │   │   ├── Database.php    # PDO connection class
 │   │   ├── CacheManager.php# File-based caching (1h TTL)
-│   │   ├── env.ini         # Credențiale DB și admin
-│   │   └── .htaccess       # Protecție env.ini
+│   │   ├── env.ini         # DB and admin credentials
+│   │   └── .htaccess       # env.ini protection
 │   ├── api/
-│   │   ├── login.php       # Autentificare sesiune
-│   │   ├── logout.php      # Logout și distrugerea sesiunii
-│   │   ├── check_auth.php  # Validare sesiune
-│   │   ├── import.php      # Procesare și validare 4 CSV-uri
-│   │   ├── get_data.php    # API date lună (cache 1h)
-│   │   └── get_evolution.php# API time-series (cache 1h)
+│   │   ├── login.php       # Session authentication
+│   │   ├── logout.php      # Logout and session destruction
+│   │   ├── check_auth.php  # Session validation
+│   │   ├── import.php      # Simultaneous processing and validation of 4 CSVs
+│   │   ├── get_data.php    # Month data API (1h cache)
+│   │   └── get_evolution.php# Time-series API (1h cache)
 │   └── cache/              # Cache storage
 └── README.md
-``````
